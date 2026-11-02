@@ -218,8 +218,8 @@ class ScreenCaptureService : Service() {
                 val text = result.textBlocks
                     .filter { block ->
                         val bounds = block.boundingBox ?: return@filter false
-                        val centerY = bounds.centerY().toFloat() / bitmap.height
-                        val centerX = bounds.centerX().toFloat() / bitmap.width
+                        val centerY = bounds.centerY().toFloat() / screenHeight
+                        val centerX = bounds.centerX().toFloat() / screenWidth
                         val raw = block.text.trim()
                         val latinLetters = raw.count { it in 'A'..'Z' || it in 'a'..'z' }
                         val allLetters = raw.count { it.isLetter() }
