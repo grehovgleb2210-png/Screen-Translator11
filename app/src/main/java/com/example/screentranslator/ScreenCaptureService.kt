@@ -58,7 +58,7 @@ class ScreenCaptureService : Service() {
 
     @Volatile private var modelReady = false
     @Volatile private var serviceStopped = false
-    private var lastRecognizedText = ""
+    private var lastTranslatedSourceText = ""
     private var lastFrameTime = 0L
     private var screenWidth = 0
     private var screenHeight = 0
@@ -215,7 +215,7 @@ class ScreenCaptureService : Service() {
             .addOnSuccessListener { result ->
                 bitmap.recycle()
                 val text = result.textBlocks.joinToString("\n") { it.text }.trim()
-                if (text.isBlank() || text == lastRecognizedText) {
+                if (text.isBlank() || text == lastTranslatedSourceText) {
                     busy.set(false)
                     return@addOnSuccessListener
                 }
@@ -224,10 +224,12 @@ class ScreenCaptureService : Service() {
                     busy.set(false)
                     return@addOnSuccessListener
                 }
-                lastRecognizedText = text
                 translator?.translate(text)
                     ?.addOnSuccessListener { translated ->
-                        if (translated.isNotBlank()) showText(translated)
+                        if (translated.isNotBlank()) {
+                            lastTranslatedSourceText = text
+                            showText(translated)
+                        }
                         busy.set(false)
                     }
                     ?.addOnFailureListener {
@@ -263,7 +265,8 @@ class ScreenCaptureService : Service() {
             WindowManager.LayoutParams.WRAP_CONTENT,
             WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
             WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
-                WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL,
+                WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or
+                WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE,
             PixelFormat.TRANSLUCENT
         ).apply {
             gravity = Gravity.BOTTOM
