@@ -214,8 +214,27 @@ class ScreenCaptureService : Service() {
         recognizer.process(InputImage.fromBitmap(bitmap, 0))
             .addOnSuccessListener { result ->
                 bitmap.recycle()
-                val text = result.textBlocks.joinToString("\n") { it.text }.trim()
-                if (text.isBlank() || text == lastTranslatedSourceText) {
+                // Keep likely English subtitles; ignore other screen text and our Russian overlay.
+                val text = result.textBlocks
+                    .filter { block ->
+                        val bounds = block.boundingBox ?: return@filter false
+                        val centerY = bounds.centerY().toFloat() / bitmap.height
+                        val centerX = bounds.centerX().toFloat() / bitmap.width
+                        val raw = block.text.trim()
+                        val latinLetters = raw.count { it in 'A'..'Z' || it in 'a'..'z' }
+                        val allLetters = raw.count { it.isLetter() }
+                        centerY in 0.55f..0.90f &&
+                            centerX in 0.08f..0.92f &&
+                            latinLetters >= 4 &&
+                            allLetters > 0 &&
+                            latinLetters.toFloat() / allLetters >= 0.65f &&
+                            raw.length <= 240
+                    }
+                    .sortedBy { it.boundingBox?.top ?: 0 }
+                    .joinToString(" ") { it.text.replace("\\n", " ").trim() }
+                    .replace(Regex("\\s+"), " ")
+                    .trim()
+                if (text.length < 4 || text == lastTranslatedSourceText) {
                     busy.set(false)
                     return@addOnSuccessListener
                 }
