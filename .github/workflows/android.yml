@@ -42,12 +42,20 @@ jobs:
           gradle-version: '8.9'
 
       - name: Build debug APK
-        run: gradle --no-daemon --stacktrace :app:assembleDebug
+        run: gradle --no-daemon --stacktrace :app:assembleDebug :tetris:assembleDebug
 
-      - name: Upload APK artifact
+      - name: Upload Screen Translator APK
         uses: actions/upload-artifact@v4
         with:
           name: ScreenTranslator-debug-apk
           path: app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Upload Tetris APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: ColorTetris-debug-apk
+          path: tetris/build/outputs/apk/debug/tetris-debug.apk
           if-no-files-found: error
           retention-days: 14
