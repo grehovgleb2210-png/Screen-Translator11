@@ -41,8 +41,8 @@ jobs:
         with:
           gradle-version: '8.9'
 
-      - name: Build debug APK
-        run: gradle --no-daemon --stacktrace :app:assembleDebug :tetris:assembleDebug
+      - name: Build Android APKs
+        run: gradle --no-daemon --stacktrace :app:assembleDebug :tetris:assembleDebug :runner:assembleDebug
 
       - name: Upload Screen Translator APK
         uses: actions/upload-artifact@v4
@@ -57,5 +57,13 @@ jobs:
         with:
           name: ColorTetris-debug-apk
           path: tetris/build/outputs/apk/debug/tetris-debug.apk
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Upload Shadow Runner APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: ShadowRunner-debug-apk
+          path: runner/build/outputs/apk/debug/runner-debug.apk
           if-no-files-found: error
           retention-days: 14
